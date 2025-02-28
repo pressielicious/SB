@@ -90,7 +90,7 @@
 
         // Fungsi untuk menambah marker dari JSON
         function addMarker(x, y) {
-            let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
+            let marker = L.marker([y +10, x], { icon: customIcon }).addTo(map)
                 .bindPopup(`Koordinat: (${x}, ${y})`);
             return marker;
         }

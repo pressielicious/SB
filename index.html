@@ -6,153 +6,112 @@
     <title>ABRP-SB</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        #map {
-            width: 100%;
-            height: 100vh;
-        }
-
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #map { width: 100%; height: 100vh; }
         button {
-            position: absolute;
-            z-index: 1000;
-            padding: 10px 15px;
-            border: none;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            border-radius: 5px;
+            position: absolute; z-index: 1000; padding: 10px 15px; border: none;
+            background-color: rgba(0, 0, 0, 0.7); color: white; cursor: pointer;
+            font-size: 14px; border-radius: 5px;
         }
-
-        #loadButton {
-            top: 10px;
-            right: 10px;
-        }
-
+        #loadButton { top: 10px; right: 10px; }
         #markerCount {
-            position: absolute;
-            top: 10px;
-            left: 45%;
+            position: absolute; top: 10px; left: 45%;
             background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            font-size: 16px;
-            border-radius: 5px;
-            font-weight: bold;
-            z-index: 1000;
+            padding: 5px; font-size: 16px; border-radius: 5px;
+            font-weight: bold; z-index: 1000;
         }
-
-        /* Pastikan ikon marker mempunyai opacity 0.8 */
-        .leaflet-marker-icon {
-            opacity: 0.8 !important;
-        }
+        .leaflet-marker-icon { opacity: 0.8 !important; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="markerCount">Jumlah Marker: 0</div>
-    <input type="file" id="fileInput" style="display:none;" />
     <button id="loadButton">Load Markers</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var customIcon = L.icon({
-            iconUrl: 'marker.png',  
-            iconSize: [15, 15],     
-            iconAnchor: [7, 7]      
-        });
-
+        var scriptURL = "YOUR_SCRIPT_URL"; // Gantikan dengan URL Apps Script
         var map = L.map('map', {
-            minZoom: -2,
-            maxZoom: 2,
-            crs: L.CRS.Simple,
-            maxBounds: [[0, 0], [12460, 8530]],
-            maxBoundsViscosity: 1.0
+            minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
+            maxBounds: [[0, 0], [12460, 8530]], maxBoundsViscosity: 1.0
         });
 
         var bounds = [[0, 0], [12460, 8530]];
         var image = L.imageOverlay('map.jpeg', bounds).addTo(map);
         map.fitBounds(bounds);
 
+        var customIcon = L.icon({ iconUrl: 'marker.png', iconSize: [15, 15], iconAnchor: [7, 7] });
         var markers = {}; 
-        var hoveredMarker = null;
+        var hoveredMarker = null; 
 
-        // Tambah marker di (0,0)
-        L.marker([0, 0], { icon: customIcon }).addTo(map)
-            .bindPopup("Marker (0,0) - Pusat Peta");
-
-        function addMarker(x, y, id = null) {
-            let marker = L.marker([y + 10, x], { icon: customIcon }).addTo(map)
+        // Fungsi untuk tambah marker dan simpan ke Google Sheets
+        function addMarker(x, y) {
+            let markerId = `marker_${x}_${y}`;
+            let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
                 .bindPopup(`Koordinat: (${x}, ${y})`);
 
-            // Simpan marker ke dalam objek markers
-            let markerId = id || `marker_${x}_${y}`;
             markers[markerId] = marker;
 
-            // Event untuk mengesan hover pada marker
-            marker.on('mouseover', function () {
-                hoveredMarker = marker;
-            });
+            fetch(scriptURL + `?action=add&id=${markerId}&x=${x}&y=${y}`)
+                .then(response => response.text())
+                .then(data => console.log(data));
 
-            marker.on('mouseout', function () {
-                hoveredMarker = null;
-            });
+            marker.on('mouseover', function () { hoveredMarker = marker; });
+            marker.on('mouseout', function () { hoveredMarker = null; });
 
             updateMarkerCount();
             return marker;
         }
 
-        function loadMarkersFromJson(jsonData) {
-            jsonData.forEach(markerData => {
-                addMarker(markerData.x, markerData.y, markerData.id);
-            });
+        // Muatkan marker dari Google Sheets
+        function loadMarkers() {
+            fetch(scriptURL)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(markerData => {
+                        if (!markers[markerData.id]) {
+                            addMarker(markerData.x, markerData.y);
+                        }
+                    });
+                });
         }
 
-        document.getElementById("fileInput").addEventListener("change", function (e) {
-            let file = e.target.files[0];
-            if (file && file.name.endsWith(".json")) {
-                let reader = new FileReader();
-                reader.onload = function(event) {
-                    let data = JSON.parse(event.target.result);
-                    loadMarkersFromJson(data);
-                };
-                reader.readAsText(file);
-            } else {
-                alert("Sila pilih fail JSON yang sah!");
-            }
+        // Klik kiri untuk tambah marker
+        map.on('click', function (e) {
+            let x = e.latlng.lng.toFixed(2);
+            let y = e.latlng.lat.toFixed(2);
+            addMarker(x, y);
         });
 
-        document.getElementById("loadButton").addEventListener("click", function () {
-            document.getElementById("fileInput").click();
-        });
-
-        function updateMarkerCount() {
-            let totalMarkers = Object.keys(markers).length;
-            document.getElementById("markerCount").innerText = `Jumlah Marker: ${totalMarkers}`;
-        }
-
-        // Fungsi klik kanan untuk membuang marker yang di-hover
+        // Klik kanan untuk padam marker
         map.on('contextmenu', function () {
             if (hoveredMarker) {
                 map.removeLayer(hoveredMarker);
 
-                // Cari key dalam markers dan buang
                 for (let key in markers) {
                     if (markers[key] === hoveredMarker) {
+                        fetch(scriptURL + `?action=delete&id=${key}`)
+                            .then(response => response.text())
+                            .then(data => console.log(data));
+
                         delete markers[key];
                         break;
                     }
                 }
-
                 updateMarkerCount();
             }
         });
+
+        // Butang untuk reload marker dari Google Sheets
+        document.getElementById("loadButton").addEventListener("click", loadMarkers);
+
+        // Kira jumlah marker
+        function updateMarkerCount() {
+            document.getElementById("markerCount").innerText = `Jumlah Marker: ${Object.keys(markers).length}`;
+        }
+
+        loadMarkers(); // Panggil fungsi untuk sync marker dari Google Sheets
 
     </script>
 

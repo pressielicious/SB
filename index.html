@@ -9,28 +9,38 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
         #map { width: 100%; height: 100vh; }
         button {
-            position: absolute; z-index: 1000; padding: 10px 15px; border: none;
-            background-color: rgba(0, 0, 0, 0.7); color: white; cursor: pointer;
-            font-size: 14px; border-radius: 5px;
+            position: absolute; z-index: 1000; padding: 10px 15px;
+            border: none; background-color: rgba(0, 0, 0, 0.7);
+            color: white; cursor: pointer; font-size: 14px; border-radius: 5px;
         }
-        #tsunamiButton { top: 50px; right: 10px; }
+        #loadButton { top: 10px; right: 10px; }
+        #tsunamiButton { bottom: 10px; right: 10px; }
         #markerCount {
             position: absolute; top: 10px; left: 45%;
             background-color: rgba(255, 255, 255, 0.7);
             padding: 5px; font-size: 16px; border-radius: 5px;
             font-weight: bold; z-index: 1000;
         }
+        .leaflet-marker-icon { opacity: 0.8 !important; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="markerCount">Jumlah Marker: 0</div>
+    <input type="file" id="fileInput" style="display:none;" />
+    <button id="loadButton">Load Markers</button>
     <button id="tsunamiButton">Tsunami</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbwju3JLcVKxL-7deG00f2ojKO_QkNdHo5F6gmzv27ZgU8YWAwe3MeqtYL0Jm7fH5qbVIA/exec"; // Masukkan URL Web App
+        const apiUrl = "https://script.google.com/macros/s/AKfycbwju3JLcVKxL-7deG00f2ojKO_QkNdHo5F6gmzv27ZgU8YWAwe3MeqtYL0Jm7fH5qbVIA/exec";
+
+        var customIcon = L.icon({
+            iconUrl: 'marker.png',
+            iconSize: [15, 15],
+            iconAnchor: [7, 7]
+        });
 
         var map = L.map('map', {
             minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
@@ -38,58 +48,81 @@
         });
 
         var bounds = [[0, 0], [12460, 8530]];
-        var image = L.imageOverlay('map.jpeg', bounds).addTo(map);
+        L.imageOverlay('map.jpeg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        var customIcon = L.icon({ iconUrl: 'marker.png', iconSize: [15, 15], iconAnchor: [7, 7] });
-        var markers = {}; 
+        var markers = {};
 
         async function loadMarkers() {
-            let response = await fetch(apiUrl);
-            let data = await response.json();
+            try {
+                let response = await fetch(apiUrl);
+                let data = await response.json();
+                console.log("Data API:", data);
 
-            Object.values(markers).forEach(marker => map.removeLayer(marker));
-            markers = {};
+                Object.values(markers).forEach(marker => map.removeLayer(marker));
+                markers = {};
 
-            data.forEach(markerData => {
-                let marker = L.marker([markerData.y, markerData.x], { icon: customIcon }).addTo(map)
-                    .bindPopup(`Koordinat: (${markerData.x}, ${markerData.y})`);
-                
-                marker.on('contextmenu', () => removeMarker(markerData.id));
-                markers[markerData.id] = marker;
-            });
+                data.forEach(markerData => {
+                    let marker = L.marker([markerData.y, markerData.x], { icon: customIcon }).addTo(map)
+                        .bindPopup(`Koordinat: (${markerData.x}, ${markerData.y})`);
+                    
+                    marker.on('contextmenu', function () {
+                        console.log("Right-clicked on marker ID:", markerData.id);
+                        removeMarker(markerData.id);
+                    });
 
-            updateMarkerCount();
+                    markers[markerData.id] = marker;
+                });
+
+                updateMarkerCount();
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
         }
 
         async function removeMarker(id) {
-            await fetch(apiUrl, {
-                method: "POST",
-                body: JSON.stringify({ action: "remove", id }),
-                headers: { "Content-Type": "application/json" }
-            });
-            loadMarkers();
+            console.log("Removing marker with ID:", id);
+            try {
+                await fetch(apiUrl, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "remove", id }),
+                    headers: { "Content-Type": "application/json" }
+                });
+                console.log("Marker removed successfully.");
+                loadMarkers();
+            } catch (error) {
+                console.error("Error removing marker:", error);
+            }
         }
 
-        document.getElementById("tsunamiButton").addEventListener("click", async function () {
-            let password = prompt("Masukkan password:");
-            if (password === "absb") {
+        async function tsunami() {
+            let password = prompt("Masukkan password untuk reset semua marker:");
+            if (password !== "absb") {
+                alert("Password salah!");
+                return;
+            }
+            try {
                 await fetch(apiUrl, {
                     method: "POST",
                     body: JSON.stringify({ action: "restore", password }),
                     headers: { "Content-Type": "application/json" }
                 });
+                alert("Semua marker telah dikembalikan!");
                 loadMarkers();
-            } else {
-                alert("Password salah!");
+            } catch (error) {
+                console.error("Error restoring markers:", error);
             }
-        });
-
-        function updateMarkerCount() {
-            document.getElementById("markerCount").innerText = `Jumlah Marker: ${Object.keys(markers).length}`;
         }
 
-        loadMarkers();
+        function updateMarkerCount() {
+            let totalMarkers = Object.keys(markers).length;
+            document.getElementById("markerCount").innerText = `Jumlah Marker: ${totalMarkers}`;
+        }
+
+        document.getElementById("loadButton").addEventListener("click", loadMarkers);
+        document.getElementById("tsunamiButton").addEventListener("click", tsunami);
+
+        loadMarkers(); // Auto-load marker setiap kali laman dibuka
     </script>
 
 </body>

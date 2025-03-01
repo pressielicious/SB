@@ -19,11 +19,6 @@
             font-size: 14px;
             border-radius: 5px;
         }
-
-        /* Pastikan ikon marker mempunyai opacity 0.8 */
-        .leaflet-marker-icon {
-            opacity: 0.8 !important;
-        }
         #undoButton { top: 10px; right: 10px; }
         #tsunamiButton { top: 10px; right: 100px; }
     </style>
@@ -52,9 +47,22 @@
         // Custom icon
         var customIcon = L.icon({
             iconUrl: 'marker.png', // Pastikan file 'marker.png' ada dalam repo
-            iconSize: [15, 15], // Saiz ikon (ubah jika perlu)
-            iconAnchor: [7, 7], // Titik tengah ikon
+            iconSize: [32, 32], // Saiz ikon (ubah jika perlu)
+            iconAnchor: [16, 32], // Titik tengah ikon
+            popupAnchor: [0, -32] // Popup muncul di atas marker
         });
+
+        // Mapping nama sign kepada nama yang betul
+        var signNames = {
+            "prop_sign_road_02a": "Yield",
+            "prop_sign_road_03m": "No Uturn",
+            "prop_sign_road_05a": "Pedestrian",
+            "prop_sign_road_04a": "No Parking",
+            "prop_sign_road_05f": "Right Turn",
+            "prop_sign_road_05e": "Left Turn",
+            "prop_sign_road_01a": "Stop",
+            "prop_sign_road_03e": "Don't Block"
+        };
 
         // Ambil marker tersembunyi dari Google Sheets
         fetch(sheetURL + "?action=getHidden")
@@ -67,8 +75,10 @@
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(markerData => {
+                            let markerName = signNames[markerData.name] || markerData.name; // Tukar nama jika ada dalam list
+                            
                             let marker = L.marker([markerData.y, markerData.x], { icon: customIcon })
-                                .bindPopup(markerData.name)
+                                .bindPopup(markerName)
                                 .addTo(map)
                                 .on('contextmenu', function () {
                                     hideMarker(marker, markerData.id);

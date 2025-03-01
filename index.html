@@ -96,20 +96,6 @@
             }
         });
 
-        function getMarkerName(name) {
-            const nameMap = {
-                "prop_sign_road_02a": "Yield",
-                "prop_sign_road_03m": "No Uturn",
-                "prop_sign_road_05a": "Pedestrian",
-                "prop_sign_road_04a": "No Parking",
-                "prop_sign_road_05f": "Right Turn",
-                "prop_sign_road_05e": "Left Turn",
-                "prop_sign_road_01a": "Stop",
-                "prop_sign_road_03e": "Don't Block"
-            };
-            return nameMap[name] || name;
-        }
-
         // Reset semua marker dengan password "noah"
         document.getElementById("tsunamiButton").addEventListener("click", function () {
             let pass = prompt("Masukkan password:");

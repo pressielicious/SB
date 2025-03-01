@@ -6,78 +6,49 @@
     <title>ABRP-SB</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        #map {
-            width: 100%;
-            height: 100vh;
-        }
-
-        #markerCount {
-            position: absolute;
-            top: 10px;
-            left: 45%;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 5px;
-            font-size: 16px;
-            border-radius: 5px;
-            font-weight: bold;
-            z-index: 1000;
-        }
-
-        .leaflet-marker-icon {
-            opacity: 0.8 !important;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #map { width: 100%; height: 100vh; }
+        #markerCount, #tsunamiButton { position: absolute; z-index: 1000; }
+        #markerCount { top: 10px; left: 45%; background: rgba(255,255,255,0.7); padding: 5px; font-size: 16px; font-weight: bold; border-radius: 5px; }
+        #tsunamiButton { bottom: 10px; right: 10px; padding: 10px 15px; border: none; background: red; color: white; cursor: pointer; border-radius: 5px; }
+        .leaflet-marker-icon { opacity: 0.8 !important; }
     </style>
 </head>
 <body>
-
     <div id="map"></div>
     <div id="markerCount">Jumlah Marker: 0</div>
+    <button id="tsunamiButton">Tsunami</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var customIcon = L.icon({
-            iconUrl: 'marker.png',
-            iconSize: [15, 15],
-            iconAnchor: [7, 7]
-        });
+        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxalP03ZhRnhEZdhpA77Afmpac7uXqyHST906K6AcTrpbIk1tMH0E6AF_13Fkb3gvIb/exec";
+        let markers = {};
 
-        var map = L.map('map', {
-            minZoom: -2,
-            maxZoom: 2,
-            crs: L.CRS.Simple,
-            maxBounds: [[0, 0], [12460, 8530]],
-            maxBoundsViscosity: 1.0
-        });
+        var customIcon = L.icon({ iconUrl: 'marker.png', iconSize: [15, 15], iconAnchor: [7, 7] });
 
-        var bounds = [[0, 0], [12460, 8530]];
-        var image = L.imageOverlay('map.jpeg', bounds).addTo(map);
-        map.fitBounds(bounds);
+        var map = L.map('map', { minZoom: -2, maxZoom: 2, crs: L.CRS.Simple, maxBounds: [[0, 0], [12460, 8530]], maxBoundsViscosity: 1.0 });
+        var image = L.imageOverlay('map.jpeg', [[0, 0], [12460, 8530]]).addTo(map);
+        map.fitBounds([[0, 0], [12460, 8530]]);
 
-        var markers = {};
-
-        // Mapping name kepada label yang diberikan
         var nameMapping = {
-            "prop_sign_road_02a": "Yield",
-            "prop_sign_road_03m": "No Uturn",
-            "prop_sign_road_05a": "Pedestrian",
-            "prop_sign_road_04a": "No Parking",
-            "prop_sign_road_05f": "Right Turn",
-            "prop_sign_road_05e": "Left Turn",
-            "prop_sign_road_01a": "Stop",
-            "prop_sign_road_03e": "Don't Block"
+            "prop_sign_road_02a": "Yield", "prop_sign_road_03m": "No Uturn",
+            "prop_sign_road_05a": "Pedestrian", "prop_sign_road_04a": "No Parking",
+            "prop_sign_road_05f": "Right Turn", "prop_sign_road_05e": "Left Turn",
+            "prop_sign_road_01a": "Stop", "prop_sign_road_03e": "Don't Block"
         };
 
-        function addMarker(x, y, id, name) {
-            let displayName = nameMapping[name] || name; // Gunakan nama asal jika tiada dalam mapping
+        function addMarker(x, y, id, name, isHidden) {
+            let displayName = nameMapping[name] || name;
             let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
                 .bindPopup(`<b>${displayName}</b>`);
+            
+            if (isHidden) marker.remove();
+            
+            marker.on("contextmenu", function () {
+                marker.remove();
+                updateMarkerStatus(id, "dicuri");
+            });
+
             markers[id] = marker;
         }
 
@@ -90,14 +61,41 @@
             fetch("leaflet.json")
                 .then(response => response.json())
                 .then(data => {
-                    data.forEach(marker => addMarker(marker.x, marker.y, marker.id, marker.name));
-                    updateMarkerCount();
+                    fetch(GOOGLE_SHEET_URL)
+                        .then(res => res.json())
+                        .then(statusData => {
+                            data.forEach(marker => {
+                                let isHidden = statusData[marker.id] === "dicuri";
+                                addMarker(marker.x, marker.y, marker.id, marker.name, isHidden);
+                            });
+                            updateMarkerCount();
+                        });
                 })
                 .catch(error => console.error("Gagal memuatkan leaflet.json:", error));
         }
 
+        function updateMarkerStatus(id, status) {
+            fetch(GOOGLE_SHEET_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "update", id, status }),
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
+        document.getElementById("tsunamiButton").addEventListener("click", function () {
+            let password = prompt("Masukkan password untuk reset:");
+            if (password === "noah") {
+                fetch(GOOGLE_SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "reset", password }),
+                    headers: { "Content-Type": "application/json" }
+                }).then(() => location.reload());
+            } else {
+                alert("Password salah!");
+            }
+        });
+
         loadMarkersFromJson();
     </script>
-
 </body>
 </html>

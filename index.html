@@ -62,9 +62,22 @@
 
         var markers = {};
 
+        // Mapping name kepada label yang diberikan
+        var nameMapping = {
+            "prop_sign_road_02a": "Yield",
+            "prop_sign_road_03m": "No Uturn",
+            "prop_sign_road_05a": "Pedestrian",
+            "prop_sign_road_04a": "No Parking",
+            "prop_sign_road_05f": "Right Turn",
+            "prop_sign_road_05e": "Left Turn",
+            "prop_sign_road_01a": "Stop",
+            "prop_sign_road_03e": "Don't Block"
+        };
+
         function addMarker(x, y, id, name) {
+            let displayName = nameMapping[name] || name; // Gunakan nama asal jika tiada dalam mapping
             let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
-                .bindPopup(`<b>${name}</b><br>Koordinat: (${x}, ${y})`);
+                .bindPopup(`<b>${displayName}</b>`);
             markers[id] = marker;
         }
 

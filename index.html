@@ -13,26 +13,25 @@
             background-color: rgba(0, 0, 0, 0.7); color: white; cursor: pointer;
             font-size: 14px; border-radius: 5px;
         }
-        #loadButton { top: 10px; right: 10px; }
+        #tsunamiButton { top: 50px; right: 10px; }
         #markerCount {
             position: absolute; top: 10px; left: 45%;
             background-color: rgba(255, 255, 255, 0.7);
             padding: 5px; font-size: 16px; border-radius: 5px;
             font-weight: bold; z-index: 1000;
         }
-        .leaflet-marker-icon { opacity: 0.8 !important; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="markerCount">Jumlah Marker: 0</div>
-    <input type="file" id="fileInput" style="display:none;" />
-    <button id="loadButton">Load Markers</button>
+    <button id="tsunamiButton">Tsunami</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        var scriptURL = "https://script.google.com/macros/s/AKfycbw-Dy8-q2pxW_8kv6haMxBzZezP0MM41DBIB3n8Gep2-PHAfYi7ypUnnNC8ioRz081PZg/exec"; // Gantikan dengan URL Apps Script
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyh-5WNY-lio-LHIPA_7i_v0t5-zSUVwM-3uA8NiAqo-LXR2g7q6sDOYoznXL8suFYWQg/exec"; // Masukkan URL Web App
+
         var map = L.map('map', {
             minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
             maxBounds: [[0, 0], [12460, 8530]], maxBoundsViscosity: 1.0
@@ -45,92 +44,52 @@
         var customIcon = L.icon({ iconUrl: 'marker.png', iconSize: [15, 15], iconAnchor: [7, 7] });
         var markers = {}; 
 
-        // Fungsi untuk tambah marker ke peta
-        function addMarker(id, x, y) {
-            let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
-                .bindPopup(`Koordinat: (${x}, ${y})`);
+        async function loadMarkers() {
+            let response = await fetch(apiUrl);
+            let data = await response.json();
 
-            markers[id] = marker;
+            Object.values(markers).forEach(marker => map.removeLayer(marker));
+            markers = {};
 
-            // Simpan event hover untuk padam marker dengan right-click
-            marker.on('mouseover', function () { marker.hovered = true; });
-            marker.on('mouseout', function () { marker.hovered = false; });
+            data.forEach(markerData => {
+                let marker = L.marker([markerData.y, markerData.x], { icon: customIcon }).addTo(map)
+                    .bindPopup(`Koordinat: (${markerData.x}, ${markerData.y})`);
+                
+                marker.on('contextmenu', () => removeMarker(markerData.id));
+                markers[markerData.id] = marker;
+            });
 
             updateMarkerCount();
-            return marker;
         }
 
-        // Fungsi untuk load marker dari JSON dalam PC
-        document.getElementById("fileInput").addEventListener("change", function (e) {
-            let file = e.target.files[0];
-            if (file && file.name.endsWith(".json")) {
-                let reader = new FileReader();
-                reader.onload = function(event) {
-                    let data = JSON.parse(event.target.result);
+        async function removeMarker(id) {
+            await fetch(apiUrl, {
+                method: "POST",
+                body: JSON.stringify({ action: "remove", id }),
+                headers: { "Content-Type": "application/json" }
+            });
+            loadMarkers();
+        }
 
-                    // Reset marker sebelum update baru
-                    Object.values(markers).forEach(marker => map.removeLayer(marker));
-                    markers = {};
-
-                    data.forEach(markerData => {
-                        addMarker(markerData.id, markerData.x, markerData.y);
-                    });
-
-                    // Upload marker baru ke Google Sheets
-                    fetch(scriptURL + `?action=add&data=${encodeURIComponent(JSON.stringify(data))}`)
-                        .then(response => response.text())
-                        .then(data => console.log(data));
-                };
-                reader.readAsText(file);
+        document.getElementById("tsunamiButton").addEventListener("click", async function () {
+            let password = prompt("Masukkan password:");
+            if (password === "absb") {
+                await fetch(apiUrl, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "restore", password }),
+                    headers: { "Content-Type": "application/json" }
+                });
+                loadMarkers();
             } else {
-                alert("Sila pilih fail JSON yang sah!");
+                alert("Password salah!");
             }
         });
 
-        // Fungsi untuk padam marker (Right Click)
-        map.on('contextmenu', function () {
-            let markerToRemove = Object.values(markers).find(marker => marker.hovered);
-            if (markerToRemove) {
-                let markerId = Object.keys(markers).find(id => markers[id] === markerToRemove);
-                if (markerId) {
-                    map.removeLayer(markerToRemove);
-                    delete markers[markerId];
-
-                    fetch(scriptURL + `?action=delete&id=${markerId}`)
-                        .then(response => response.text())
-                        .then(data => console.log(data));
-
-                    updateMarkerCount();
-                }
-            }
-        });
-
-        // Butang untuk load JSON dari PC
-        document.getElementById("loadButton").addEventListener("click", function () {
-            document.getElementById("fileInput").click();
-        });
-
-        // Fungsi untuk kira jumlah marker
         function updateMarkerCount() {
             document.getElementById("markerCount").innerText = `Jumlah Marker: ${Object.keys(markers).length}`;
         }
 
-        // Auto-load marker dari Google Sheets
-        function syncMarkers() {
-            fetch(scriptURL)
-                .then(response => response.json())
-                .then(data => {
-                    Object.values(markers).forEach(marker => map.removeLayer(marker));
-                    markers = {};
-
-                    data.forEach(markerData => {
-                        addMarker(markerData.id, markerData.x, markerData.y);
-                    });
-                });
-        }
-
-        syncMarkers(); // Sync marker dari Google Sheets pada permulaan
-
+        loadMarkers();
     </script>
 
 </body>

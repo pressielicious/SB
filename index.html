@@ -76,7 +76,7 @@
                         data.forEach(markerData => {
                             let markerName = signNames[markerData.name] || markerData.name; // Tukar nama jika ada dalam list
                             
-                            let marker = L.marker([markerData.y, markerData.x], { icon: customIcon })
+                            let marker = L.marker([markerData.y, markerData.x], { icon: customIcon, opacity: 0.8 })
                                 .bindPopup(markerName)
                                 .addTo(map)
                                 .on('contextmenu', function () {

@@ -62,14 +62,12 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Konfigurasi ikon tersuai
         var customIcon = L.icon({
-            iconUrl: 'marker.png',  // Pastikan 'marker.png' berada dalam direktori yang betul
-            iconSize: [15, 15],     // Saiz ikon (width, height)
-            iconAnchor: [7, 7]      // Pastikan ikon di tengah titik marker
+            iconUrl: 'marker.png',  
+            iconSize: [15, 15],     
+            iconAnchor: [7, 7]      
         });
 
-        // Konfigurasi peta Leaflet
         var map = L.map('map', {
             minZoom: -2,
             maxZoom: 2,
@@ -82,29 +80,40 @@
         var image = L.imageOverlay('map.jpeg', bounds).addTo(map);
         map.fitBounds(bounds);
 
-        var markers = {}; // Simpan semua marker yang dimuatkan
+        var markers = {}; 
+        var hoveredMarker = null;
 
-        // Tambah marker di (0,0) untuk memeriksa posisinya
+        // Tambah marker di (0,0)
         L.marker([0, 0], { icon: customIcon }).addTo(map)
             .bindPopup("Marker (0,0) - Pusat Peta");
 
-        // Fungsi untuk menambah marker dari JSON
-        function addMarker(x, y) {
-            let marker = L.marker([y +10, x], { icon: customIcon }).addTo(map)
+        function addMarker(x, y, id = null) {
+            let marker = L.marker([y + 10, x], { icon: customIcon }).addTo(map)
                 .bindPopup(`Koordinat: (${x}, ${y})`);
+
+            // Simpan marker ke dalam objek markers
+            let markerId = id || `marker_${x}_${y}`;
+            markers[markerId] = marker;
+
+            // Event untuk mengesan hover pada marker
+            marker.on('mouseover', function () {
+                hoveredMarker = marker;
+            });
+
+            marker.on('mouseout', function () {
+                hoveredMarker = null;
+            });
+
+            updateMarkerCount();
             return marker;
         }
 
-        // Fungsi untuk memuatkan marker dari fail JSON
         function loadMarkersFromJson(jsonData) {
             jsonData.forEach(markerData => {
-                let marker = addMarker(markerData.x, markerData.y);
-                markers[markerData.id] = marker;
+                addMarker(markerData.x, markerData.y, markerData.id);
             });
-            updateMarkerCount();
         }
 
-        // Fungsi untuk memilih fail JSON dan memuatkan marker
         document.getElementById("fileInput").addEventListener("change", function (e) {
             let file = e.target.files[0];
             if (file && file.name.endsWith(".json")) {
@@ -119,25 +128,30 @@
             }
         });
 
-        // Butang untuk memilih fail JSON
         document.getElementById("loadButton").addEventListener("click", function () {
             document.getElementById("fileInput").click();
         });
 
-        // Fungsi untuk mengira jumlah marker
         function updateMarkerCount() {
             let totalMarkers = Object.keys(markers).length;
             document.getElementById("markerCount").innerText = `Jumlah Marker: ${totalMarkers}`;
         }
 
-        // Fungsi klik kanan untuk melihat koordinat
-        map.on('contextmenu', function(e) {
-            let x = e.latlng.lng.toFixed(2);
-            let y = e.latlng.lat.toFixed(2);
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(`Koordinat: (${x}, ${y})`)
-                .openOn(map);
+        // Fungsi klik kanan untuk membuang marker yang di-hover
+        map.on('contextmenu', function () {
+            if (hoveredMarker) {
+                map.removeLayer(hoveredMarker);
+
+                // Cari key dalam markers dan buang
+                for (let key in markers) {
+                    if (markers[key] === hoveredMarker) {
+                        delete markers[key];
+                        break;
+                    }
+                }
+
+                updateMarkerCount();
+            }
         });
 
     </script>

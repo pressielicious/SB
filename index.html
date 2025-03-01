@@ -8,94 +8,108 @@
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
         #map { width: 100%; height: 100vh; }
-        #markerCount, #tsunamiButton { position: absolute; z-index: 1000; }
-        #markerCount { top: 10px; left: 45%; background: rgba(255,255,255,0.7); padding: 5px; font-size: 16px; font-weight: bold; border-radius: 5px; }
-        #tsunamiButton { bottom: 10px; right: 10px; padding: 10px 15px; border: none; background: red; color: white; cursor: pointer; border-radius: 5px; }
-        .leaflet-marker-icon { opacity: 0.8 !important; }
+        button {
+            position: absolute;
+            z-index: 1000;
+            padding: 10px 15px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        #undoButton { top: 10px; left: 10px; }
+        #tsunamiButton { top: 10px; left: 100px; }
     </style>
 </head>
 <body>
+
     <div id="map"></div>
-    <div id="markerCount">Jumlah Marker: 0</div>
+    <button id="undoButton">Undo</button>
     <button id="tsunamiButton">Tsunami</button>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxFfNGpyNNfLx30JT0wjgFoI20Bt54vGa-jNN2AjhwsqqN23Q6pkJovcLi7zsddZMau/exec";
-        let markers = {};
+        var sheetURL = "https://script.google.com/macros/s/AKfycbyODOQtklfEAsk1e-KUBJoMuddLvVLDkDP67K4IQd4FdgHCHZW4w9H2J8eS-U78YYY1/exec";
+        var map = L.map('map', {
+            minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
+            maxBounds: [[0, 0], [12888, 8192]], maxBoundsViscosity: 1.0
+        });
 
-        var customIcon = L.icon({ iconUrl: 'marker.png', iconSize: [15, 15], iconAnchor: [7, 7] });
+        var bounds = [[0, 0], [12888, 8192]];
+        L.imageOverlay('map.jpeg', bounds).addTo(map);
+        map.fitBounds(bounds);
 
-        var map = L.map('map', { minZoom: -2, maxZoom: 2, crs: L.CRS.Simple, maxBounds: [[0, 0], [12460, 8530]], maxBoundsViscosity: 1.0 });
-        var image = L.imageOverlay('map.jpeg', [[0, 0], [12460, 8530]]).addTo(map);
-        map.fitBounds([[0, 0], [12460, 8530]]);
+        var markers = {};
+        var hiddenMarkers = new Set();
 
-        var nameMapping = {
-            "prop_sign_road_02a": "Yield", "prop_sign_road_03m": "No Uturn",
-            "prop_sign_road_05a": "Pedestrian", "prop_sign_road_04a": "No Parking",
-            "prop_sign_road_05f": "Right Turn", "prop_sign_road_05e": "Left Turn",
-            "prop_sign_road_01a": "Stop", "prop_sign_road_03e": "Don't Block"
-        };
+        // Ambil marker tersembunyi dari Google Sheets
+        fetch(sheetURL + "?action=getHidden")
+            .then(response => response.json())
+            .then(hiddenIds => {
+                hiddenMarkers = new Set(hiddenIds);
 
-        function addMarker(x, y, id, name, isHidden) {
-            let displayName = nameMapping[name] || name;
-            let marker = L.marker([y, x], { icon: customIcon }).addTo(map)
-                .bindPopup(`<b>${displayName}</b>`);
-            
-            if (isHidden) marker.remove();
-            
-            marker.on("contextmenu", function () {
-                marker.remove();
-                updateMarkerStatus(id, "dicuri");
-            });
+                // Load marker dari leaflet.json dalam repo GitHub Pages
+                fetch("leaflet.json")
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(markerData => {
+                            let marker = L.marker([markerData.y, markerData.x])
+                                .bindPopup(markerData.name)
+                                .addTo(map)
+                                .on('contextmenu', function () {
+                                    hideMarker(marker, markerData.id);
+                                });
 
-            markers[id] = marker;
-        }
+                            markers[markerData.id] = marker;
 
-        function updateMarkerCount() {
-            let totalMarkers = Object.keys(markers).length;
-            document.getElementById("markerCount").innerText = `Jumlah Marker: ${totalMarkers}`;
-        }
-
-        function loadMarkersFromJson() {
-            fetch("leaflet.json")
-                .then(response => response.json())
-                .then(data => {
-                    fetch(GOOGLE_SHEET_URL)
-                        .then(res => res.json())
-                        .then(statusData => {
-                            data.forEach(marker => {
-                                let isHidden = statusData[marker.id] === "dicuri";
-                                addMarker(marker.x, marker.y, marker.id, marker.name, isHidden);
-                            });
-                            updateMarkerCount();
+                            if (hiddenMarkers.has(markerData.id.toString())) {
+                                marker.remove();
+                            }
                         });
-                })
-                .catch(error => console.error("Gagal memuatkan leaflet.json:", error));
-        }
-
-        function updateMarkerStatus(id, status) {
-            fetch(GOOGLE_SHEET_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "update", id, status }),
-                headers: { "Content-Type": "application/json" }
+                    });
             });
+
+        // Hide marker & sync ke Google Sheets
+        function hideMarker(marker, id) {
+            marker.remove();
+            hiddenMarkers.add(id.toString());
+
+            fetch(sheetURL + "?action=hide&id=" + id)
+                .then(() => console.log("Marker hidden:", id));
         }
 
+        // Undo hide marker terakhir
+        document.getElementById("undoButton").addEventListener("click", function () {
+            if (hiddenMarkers.size > 0) {
+                let id = [...hiddenMarkers].pop();
+                let marker = markers[id];
+
+                if (marker) {
+                    marker.addTo(map);
+                    hiddenMarkers.delete(id);
+
+                    fetch(sheetURL + "?action=show&id=" + id)
+                        .then(() => console.log("Marker restored:", id));
+                }
+            }
+        });
+
+        // Reset semua marker dengan password "noah"
         document.getElementById("tsunamiButton").addEventListener("click", function () {
-            let password = prompt("Masukkan password untuk reset:");
-            if (password === "noah") {
-                fetch(GOOGLE_SHEET_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "reset", password }),
-                    headers: { "Content-Type": "application/json" }
-                }).then(() => location.reload());
+            let pass = prompt("Masukkan password:");
+            if (pass === "noah") {
+                fetch(sheetURL + "?action=reset")
+                    .then(() => {
+                        console.log("Tsunami triggered!");
+                        location.reload();
+                    });
             } else {
                 alert("Password salah!");
             }
         });
-
-        loadMarkersFromJson();
     </script>
+
 </body>
 </html>

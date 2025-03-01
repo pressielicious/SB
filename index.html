@@ -44,6 +44,13 @@
         var markers = {};
         var hiddenMarkers = new Set();
 
+        // Custom icon
+        var customIcon = L.icon({
+            iconUrl: 'marker.png', // Pastikan file 'marker.png' ada dalam repo
+            iconSize: [15, 15], // Saiz ikon (ubah jika perlu)
+            iconAnchor: [16, 32], // Titik tengah ikon
+        });
+
         // Ambil marker tersembunyi dari Google Sheets
         fetch(sheetURL + "?action=getHidden")
             .then(response => response.json())
@@ -55,7 +62,7 @@
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(markerData => {
-                            let marker = L.marker([markerData.y, markerData.x])
+                            let marker = L.marker([markerData.y, markerData.x], { icon: customIcon })
                                 .bindPopup(markerData.name)
                                 .addTo(map)
                                 .on('contextmenu', function () {

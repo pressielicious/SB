@@ -23,24 +23,24 @@
         #tsunamiButton { top: 10px; right: 10px; background-color: red; color: white; }
         #markerCounter {
             position: absolute;
-            top: 10px; 
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 10px 15px;
-            font-size: 14px;
             border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
-    <div id="markerCounter">Signboards: 0</div>
     <button id="undoButton">Undo</button>
     <button id="tsunamiButton">Tsunami</button>
+    <div id="markerCounter">Signboards: 0</div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -57,12 +57,14 @@
         var markers = {};
         var hiddenMarkers = new Set();
 
+        // Custom icon
         var customIcon = L.icon({
             iconUrl: 'marker.png',
             iconSize: [15, 15],
             iconAnchor: [7, 7],
         });
 
+        // Mapping nama sign kepada nama yang betul
         var signNames = {
             "prop_sign_road_02a": "Yield",
             "prop_sign_road_03m": "No Uturn",
@@ -74,16 +76,13 @@
             "prop_sign_road_03e": "Don't Block"
         };
 
-        function updateMarkerCounter() {
-            let visibleMarkers = Object.keys(markers).length - hiddenMarkers.size;
-            document.getElementById("markerCounter").innerText = `Signboards: ${visibleMarkers}`;
-        }
-
+        // Ambil marker tersembunyi dari Google Sheets
         fetch(sheetURL + "?action=getHidden")
             .then(response => response.json())
             .then(hiddenIds => {
                 hiddenMarkers = new Set(hiddenIds);
 
+                // Load marker dari leaflet.json dalam repo GitHub Pages
                 fetch("leaflet.json")
                     .then(response => response.json())
                     .then(data => {
@@ -108,6 +107,7 @@
                     });
             });
 
+        // Hide marker & sync ke Google Sheets
         function hideMarker(marker, id) {
             marker.remove();
             hiddenMarkers.add(id.toString());
@@ -117,6 +117,7 @@
                 .then(() => console.log("Marker hidden:", id));
         }
 
+        // Undo hide marker terakhir
         document.getElementById("undoButton").addEventListener("click", function () {
             if (hiddenMarkers.size > 0) {
                 let id = [...hiddenMarkers].pop();
@@ -133,6 +134,7 @@
             }
         });
 
+        // Reset semua marker dengan password "noah"
         document.getElementById("tsunamiButton").addEventListener("click", function () {
             let pass = prompt("Masukkan password:");
             if (pass === "noah") {
@@ -145,6 +147,12 @@
                 alert("Password salah!");
             }
         });
+
+        // Fungsi update marker counter
+        function updateMarkerCounter() {
+            let visibleMarkers = Object.values(markers).filter(marker => map.hasLayer(marker)).length;
+            document.getElementById("markerCounter").innerText = `Signboards: ${visibleMarkers}`;
+        }
     </script>
 
 </body>

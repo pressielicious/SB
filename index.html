@@ -34,10 +34,10 @@
         var sheetURL = "https://script.google.com/macros/s/AKfycbyODOQtklfEAsk1e-KUBJoMuddLvVLDkDP67K4IQd4FdgHCHZW4w9H2J8eS-U78YYY1/exec";
         var map = L.map('map', {
             minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
-            maxBounds: [[0, 0], [12465, 8530]], maxBoundsViscosity: 1.0
+            maxBounds: [[0, 0], [12450, 8530]], maxBoundsViscosity: 1.0
         });
 
-        var bounds = [[0, 0], [12465, 8530]];
+        var bounds = [[0, 0], [12450, 8530]];
         L.imageOverlay('map.jpeg', bounds).addTo(map);
         map.fitBounds(bounds);
 

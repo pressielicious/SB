@@ -1,64 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AB Dadih Calc</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px }
-    h1,h2 { margin-top:30px }
-    input { width:80px; padding:5px; margin:5px }
-    button { padding:8px 16px; margin-top:10px; cursor:pointer }
-    table { border-collapse: collapse; margin-top:10px; width:100% }
-    th, td { border:1px solid #444; padding:8px; text-align:center }
-    th { background:#222 }
-    .box { border:1px solid #333; padding:15px; margin-top:20px }
+    :root {
+      --bg: #0d0d10;
+      --card: #1a1a1f;
+      --border: #333;
+      --text: #e6e6eb;
+      --muted: #a0a0ab;
+      --accent: #5c6bc0;
+      --accent-hover: #3f51b5;
+    }* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+h1 { text-align: center; margin-bottom: 20px; font-size: 1.8rem; letter-spacing: 1px; }
+h2 { margin-bottom: 12px; font-size: 1.1rem; }
+
+.box { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+
+.input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+.input-grid label { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--muted); }
+input { padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #111; color: var(--text); font-size: 1rem; }
+
+button { width: 100%; padding: 12px; border: none; border-radius: 12px; background: var(--accent); color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+button:hover { background: var(--accent-hover); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+th, td { border-bottom: 1px solid var(--border); padding: 10px 6px; text-align: left; }
+th { background: #111; color: var(--muted); font-weight: 500; }
+
+@media (max-width: 600px) {
+  .input-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 1.5rem; }
+}
+
   </style>
 </head>
-<body>
-
-<h1>AB Dadih Calc</h1>
-
-<div class="box">
+<body><h1>AB Dadih Crafting Calculator</h1><div class="box">
   <h2>Input</h2>
-  Vest: <input type="number" id="vest" value="0" min="0" />
-  Ammo Box: <input type="number" id="ammo" value="0" min="0" />
-  Pistol: <input type="number" id="pistol" value="0" min="0" />
-  <br />
+  <div class="input-grid">
+    <div><label>Vest<input type="number" id="vest" value="0" min="0" /></label></div>
+    <div><label>Ammo Box<input type="number" id="ammo" value="0" min="0" /></label></div>
+    <div><label>Pistol<input type="number" id="pistol" value="0" min="0" /></label></div>
+  </div>
   <button onclick="calculate()">Kira</button>
-</div>
-
-<div class="box">
+</div><div class="box">
   <h2>Tier 4 – Perlu Craft</h2>
   <table>
     <tr><th>Item</th><th>Jumlah</th></tr>
     <tbody id="tier4"></tbody>
   </table>
-</div>
-
-<div class="box">
+</div><div class="box">
   <h2>Tier 3 – Perlu Craft</h2>
   <table>
     <tr><th>Item</th><th>Jumlah</th></tr>
     <tbody id="tier3"></tbody>
   </table>
-</div>
-
-<div class="box">
+</div><div class="box">
   <h2>Bahan Mentah – Perlu Farm</h2>
   <table>
     <tr><th>Bahan</th><th>Jumlah</th></tr>
     <tbody id="raw"></tbody>
   </table>
-</div>
-
-<script>
+</div><script>
 function calculate() {
   const vest = Number(document.getElementById('vest').value);
   const ammo = Number(document.getElementById('ammo').value);
   const pistol = Number(document.getElementById('pistol').value);
 
-  // ===== TIER 4 =====
   const tier4 = {
     joint: vest*2 + ammo*1 + pistol*3,
     pillscoke: vest*2 + ammo*1 + pistol*3,
@@ -66,14 +76,10 @@ function calculate() {
     heroin: vest*2 + ammo*3 + pistol*1
   };
 
-  // render tier 4
   const t4 = document.getElementById('tier4');
   t4.innerHTML = '';
-  for (let k in tier4) {
-    t4.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier4[k]}</td></tr>`;
-  }
+  for (let k in tier4) t4.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier4[k]}</td></tr>`;
 
-  // ===== TIER 3 =====
   const tier3 = {
     cokepure: tier4.joint + tier4.pillscoke,
     crack: tier4.morphine + tier4.heroin,
@@ -82,30 +88,20 @@ function calculate() {
 
   const t3 = document.getElementById('tier3');
   t3.innerHTML = '';
-  for (let k in tier3) {
-    t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
-  }
+  for (let k in tier3) t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
 
-  // ===== RAW MATERIAL =====
   const raw = {
     weedbud: (tier4.joint + tier4.morphine) * 5,
     cokeleaf: tier3.cokepure * 5,
     poppy: tier3.crack * 5,
     acid: tier3.ammonium * 5,
     water: tier3.cokepure + tier3.crack + tier3.ammonium,
-    plastic:
-      tier4.joint + tier4.pillscoke + tier4.morphine + tier4.heroin +
-      tier3.cokepure + tier3.crack + tier3.ammonium
+    plastic: tier4.joint + tier4.pillscoke + tier4.morphine + tier4.heroin + tier3.cokepure + tier3.crack + tier3.ammonium
   };
 
   const r = document.getElementById('raw');
   r.innerHTML = '';
-  for (let k in raw) {
-    r.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${raw[k]}</td></tr>`;
-  }
+  for (let k in raw) r.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${raw[k]}</td></tr>`;
 }
-</script>
-
-</body>
+</script></body>
 </html>
-

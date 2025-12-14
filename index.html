@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AB Dadih Calc</title>
+  <title>ABDCalc</title>
   <style>
     :root {
       --bg: #0d0d10;
@@ -37,7 +37,7 @@ th { background: #111; color: var(--muted); font-weight: 500; }
 
   </style>
 </head>
-<body><h1>AB Dadih Crafting Calculator</h1><div class="box">
+<body><h1>AB Dadih Calculator</h1><div class="box">
   <h2>Input</h2>
   <div class="input-grid">
     <div><label>Vest<input type="number" id="vest" value="0" min="0" /></label></div>
@@ -46,19 +46,19 @@ th { background: #111; color: var(--muted); font-weight: 500; }
   </div>
   <button onclick="calculate()">Kira</button>
 </div><div class="box">
-  <h2>Bahan Mentah – Perlu Farm</h2>
+  <h2>Bahan Mentah (Farm/Buy)</h2>
   <table>
     <tr><th>Bahan</th><th>Jumlah</th></tr>
     <tbody id="raw"></tbody>
   </table>
 </div><div class="box">
-  <h2>Tier 3 – Perlu Craft</h2>
+  <h2>Tier 3 (Craft)</h2>
   <table>
     <tr><th>Item</th><th>Jumlah</th></tr>
     <tbody id="tier3"></tbody>
   </table>
 </div><div class="box">
-  <h2>Tier 4 – Perlu Craft</h2>
+  <h2>Tier 4 (Craft)</h2>
   <table>
     <tr><th>Item</th><th>Jumlah</th></tr>
     <tbody id="tier4"></tbody>
@@ -105,3 +105,4 @@ function calculate() {
 }
 </script></body>
 </html>
+

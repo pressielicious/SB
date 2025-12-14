@@ -82,4 +82,30 @@ function calculate() {
 
   const t3 = document.getElementById('tier3');
   t3.innerHTML = '';
+  for (let k in tier3) {
+    t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
+  }
+
+  // ===== RAW MATERIAL =====
+  const raw = {
+    weedbud: (tier4.joint + tier4.morphine) * 5,
+    cokeleaf: tier3.cokepure * 5,
+    poppy: tier3.crack * 5,
+    acid: tier3.ammonium * 5,
+    water: tier3.cokepure + tier3.crack + tier3.ammonium,
+    plastic:
+      tier4.joint + tier4.pillscoke + tier4.morphine + tier4.heroin +
+      tier3.cokepure + tier3.crack + tier3.ammonium
+  };
+
+  const r = document.getElementById('raw');
+  r.innerHTML = '';
+  for (let k in raw) {
+    r.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${raw[k]}</td></tr>`;
+  }
+}
+</script>
+
+</body>
+</html>
 

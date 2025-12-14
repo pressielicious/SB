@@ -3,81 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Crafting Calculator</title>
+  <title>AB Dadih Calc</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-    h1 { font-size: 26px; margin-bottom: 10px; }
-    h2 { margin-top: 30px; }
-    .box {
-      background: #020617;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.4);
-    }
-    label {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    input {
-      width: 80px;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      text-align: center;
-    }
-    button {
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      background: #22c55e;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border-bottom: 1px solid #334155;
-      padding: 8px;
-      text-align: center;
-    }
-    th { background: #020617; }
+    body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px }
+    h1,h2 { margin-top:30px }
+    input { width:80px; padding:5px; margin:5px }
+    button { padding:8px 16px; margin-top:10px; cursor:pointer }
+    table { border-collapse: collapse; margin-top:10px; width:100% }
+    th, td { border:1px solid #444; padding:8px; text-align:center }
+    th { background:#222 }
+    .box { border:1px solid #333; padding:15px; margin-top:20px }
   </style>
 </head>
 <body>
 
-<h1>Drug Crafting Calculator</h1>
-<p>Masukkan jumlah item. Sistem akan kira bahan mentah yang perlu difarm.</p>
+<h1>AB Dadih Calc</h1>
 
 <div class="box">
-  <h2>Item Output</h2>
-  <label>Vest <input id="vest" type="number" value="0" min="0"></label>
-  <label>Ammo Box <input id="ammo" type="number" value="0" min="0"></label>
-  <label>Pistol <input id="pistol" type="number" value="0" min="0"></label>
-  <button onclick="calculate()">Kira Bahan</button>
+  <h2>Input</h2>
+  Vest: <input type="number" id="vest" value="0" min="0" />
+  Ammo Box: <input type="number" id="ammo" value="0" min="0" />
+  Pistol: <input type="number" id="pistol" value="0" min="0" />
+  <br />
+  <button onclick="calculate()">Kira</button>
 </div>
 
 <div class="box">
-  <h2>Keperluan Bahan Mentah</h2>
+  <h2>Tier 4 – Perlu Craft</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Bahan</th>
-        <th>Jumlah</th>
-      </tr>
-    </thead>
-    <tbody id="result"></tbody>
+    <tr><th>Item</th><th>Jumlah</th></tr>
+    <tbody id="tier4"></tbody>
+  </table>
+</div>
+
+<div class="box">
+  <h2>Tier 3 – Perlu Craft</h2>
+  <table>
+    <tr><th>Item</th><th>Jumlah</th></tr>
+    <tbody id="tier3"></tbody>
+  </table>
+</div>
+
+<div class="box">
+  <h2>Bahan Mentah – Perlu Farm</h2>
+  <table>
+    <tr><th>Bahan</th><th>Jumlah</th></tr>
+    <tbody id="raw"></tbody>
   </table>
 </div>
 
@@ -87,36 +58,50 @@ function calculate() {
   const ammo = Number(document.getElementById('ammo').value);
   const pistol = Number(document.getElementById('pistol').value);
 
-  // Tier 4 per item
-  const needs = {
+  // ===== TIER 4 =====
+  const tier4 = {
     joint: vest*2 + ammo*1 + pistol*3,
-    cocaine: vest*2 + ammo*1 + pistol*3,
+    pillscoke: vest*2 + ammo*1 + pistol*3,
     morphine: vest*2 + ammo*3 + pistol*1,
     heroin: vest*2 + ammo*3 + pistol*1
   };
 
-  // Convert to SET count (1 set = 1 of each)
-  const sets = Math.max(needs.joint, needs.cocaine, needs.morphine, needs.heroin);
-
-  // Bahan mentah per SET
-  const perSet = {
-    weedbud: 10,
-    acid: 10,
-    cokeleaf: 10,
-    poppy: 10,
-    water: 6,
-    plastic: 10
-  };
-
-  const total = {};
-  for (let k in perSet) {
-    total[k] = perSet[k] * sets;
+  // render tier 4
+  const t4 = document.getElementById('tier4');
+  t4.innerHTML = '';
+  for (let k in tier4) {
+    t4.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier4[k]}</td></tr>`;
   }
 
-  const tbody = document.getElementById('result');
-  tbody.innerHTML = '';
-  for (let k in total) {
-    tbody.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${total[k]}</td></tr>`;
+  // ===== TIER 3 =====
+  const tier3 = {
+    cokepure: tier4.joint + tier4.pillscoke,
+    crack: tier4.morphine + tier4.heroin,
+    ammonium: tier4.heroin + tier4.pillscoke
+  };
+
+  const t3 = document.getElementById('tier3');
+  t3.innerHTML = '';
+  for (let k in tier3) {
+    t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
+  }
+
+  // ===== RAW MATERIAL =====
+  const raw = {
+    weedbud: (tier4.joint + tier4.morphine) * 5,
+    cokeleaf: tier3.cokepure * 5,
+    poppy: tier3.crack * 5,
+    acid: tier3.ammonium * 5,
+    water: tier3.cokepure + tier3.crack + tier3.ammonium,
+    plastic:
+      tier4.joint + tier4.pillscoke + tier4.morphine + tier4.heroin +
+      tier3.cokepure + tier3.crack + tier3.ammonium
+  };
+
+  const r = document.getElementById('raw');
+  r.innerHTML = '';
+  for (let k in raw) {
+    r.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${raw[k]}</td></tr>`;
   }
 }
 </script>

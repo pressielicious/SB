@@ -46,10 +46,10 @@ th { background: #111; color: var(--muted); font-weight: 500; }
   </div>
   <button onclick="calculate()">Kira</button>
 </div><div class="box">
-  <h2>Tier 4 – Perlu Craft</h2>
+  <h2>Bahan Mentah – Perlu Farm</h2>
   <table>
-    <tr><th>Item</th><th>Jumlah</th></tr>
-    <tbody id="tier4"></tbody>
+    <tr><th>Bahan</th><th>Jumlah</th></tr>
+    <tbody id="raw"></tbody>
   </table>
 </div><div class="box">
   <h2>Tier 3 – Perlu Craft</h2>
@@ -58,10 +58,10 @@ th { background: #111; color: var(--muted); font-weight: 500; }
     <tbody id="tier3"></tbody>
   </table>
 </div><div class="box">
-  <h2>Bahan Mentah – Perlu Farm</h2>
+  <h2>Tier 4 – Perlu Craft</h2>
   <table>
-    <tr><th>Bahan</th><th>Jumlah</th></tr>
-    <tbody id="raw"></tbody>
+    <tr><th>Item</th><th>Jumlah</th></tr>
+    <tbody id="tier4"></tbody>
   </table>
 </div><script>
 function calculate() {
@@ -76,19 +76,11 @@ function calculate() {
     heroin: vest*2 + ammo*3 + pistol*1
   };
 
-  const t4 = document.getElementById('tier4');
-  t4.innerHTML = '';
-  for (let k in tier4) t4.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier4[k]}</td></tr>`;
-
   const tier3 = {
     cokepure: tier4.joint + tier4.pillscoke,
     crack: tier4.morphine + tier4.heroin,
     ammonium: tier4.heroin + tier4.pillscoke
   };
-
-  const t3 = document.getElementById('tier3');
-  t3.innerHTML = '';
-  for (let k in tier3) t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
 
   const raw = {
     weedbud: (tier4.joint + tier4.morphine) * 5,
@@ -102,6 +94,14 @@ function calculate() {
   const r = document.getElementById('raw');
   r.innerHTML = '';
   for (let k in raw) r.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${raw[k]}</td></tr>`;
+
+  const t3 = document.getElementById('tier3');
+  t3.innerHTML = '';
+  for (let k in tier3) t3.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier3[k]}</td></tr>`;
+
+  const t4 = document.getElementById('tier4');
+  t4.innerHTML = '';
+  for (let k in tier4) t4.innerHTML += `<tr><td>${k.toUpperCase()}</td><td>${tier4[k]}</td></tr>`;
 }
 </script></body>
 </html>

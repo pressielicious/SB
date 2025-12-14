@@ -1,114 +1,141 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABRP-SB</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
-        #map { width: 100%; height: 100vh; }
-        button {
-            position: absolute;
-            z-index: 1000;
-            padding: 10px 15px;
-            border: none;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            border-radius: 5px;
-        }
-        #undoButton { top: 10px; right: 100px; }
-        #tsunamiButton { top: 10px; right: 10px; background-color: red; color: white; }
-        #markerCounter {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 1000;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farm & Crafting Guide</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #1e1e1e;
+      color: #f5f5f5;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+    th, td {
+      border: 1px solid #f5f5f5;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+    }
+    caption {
+      caption-side: top;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 <body>
 
-    <div id="map"></div>
-    <button id="undoButton">Undo</button>
-    <button id="tsunamiButton">Tsunami</button>
-    <div id="markerCounter">Signboards: 0</div>
+  <table>
+    <caption>Tier 3 Crafting</caption>
+    <thead>
+      <tr>
+        <th>WEEDBUD</th>
+        <th>POPPY</th>
+        <th>COKELEAF</th>
+        <th>ACID</th>
+        <th>PLASTIC</th>
+        <th>WATER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>-</td>
+        <td>-</td>
+        <td>200</td>
+        <td>-</td>
+        <td>40</td>
+        <td>40</td>
+      </tr>
+      <tr>
+        <td>-</td>
+        <td>200</td>
+        <td>-</td>
+        <td>-</td>
+        <td>40</td>
+        <td>40</td>
+      </tr>
+      <tr>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>200</td>
+        <td>40</td>
+        <td>40</td>
+      </tr>
+      <tr>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        var sheetURL = "https://script.google.com/macros/s/AKfycbyODOQtklfEAsk1e-KUBJoMuddLvVLDkDP67K4IQd4FdgHCHZW4w9H2J8eS-U78YYY1/exec";
-        var map = L.map('map', {
-            minZoom: -2, maxZoom: 2, crs: L.CRS.Simple,
-            maxBounds: [[0, 0], [12450, 8530]], maxBoundsViscosity: 1.0
-        });
+  <p>3 = 40x crack, 40x cokepure, 40x chlorite.</p>
 
-        var bounds = [[0, 0], [12450, 8530]];
-        L.imageOverlay('map.jpeg', bounds).addTo(map);
-        map.fitBounds(bounds);
+  <table>
+    <caption>Tier 4 Crafting</caption>
+    <thead>
+      <tr>
+        <th>WEEDBUD</th>
+        <th>CRACK</th>
+        <th>COKEPURE</th>
+        <th>CHLORITE</th>
+        <th>PLASTIC</th>
+        <th>WATER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>100</td>
+        <td>-</td>
+        <td>20</td>
+        <td>-</td>
+        <td>20</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>100</td>
+        <td>20</td>
+        <td>-</td>
+        <td>-</td>
+        <td>20</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>-</td>
+        <td>20</td>
+        <td>-</td>
+        <td>20</td>
+        <td>20</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>-</td>
+        <td>-</td>
+        <td>20</td>
+        <td>20</td>
+        <td>20</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
 
-        var markers = {};
-        var hiddenMarkers = new Set();
+  <p>4 = 20 joint, 20 morphine, 20 heroin, 20 pillscoke.</p>
 
-        // Custom icon
-        var customIcon = L.icon({
-            iconUrl: 'marker.png',
-            iconSize: [15, 15],
-            iconAnchor: [7, 7],
-        });
-
-        // Mapping nama sign kepada nama yang betul
-        var signNames = {
-            "prop_sign_road_02a": "Yield",
-            "prop_sign_road_03m": "No Uturn",
-            "prop_sign_road_05a": "Pedestrian",
-            "prop_sign_road_04a": "No Parking",
-            "prop_sign_road_05f": "Right Turn",
-            "prop_sign_road_05e": "Left Turn",
-            "prop_sign_road_01a": "Stop",
-            "prop_sign_road_03e": "Don't Block"
-        };
-
-        // Ambil marker tersembunyi dari Google Sheets
-        fetch(sheetURL + "?action=getHidden")
-            .then(response => response.json())
-            .then(hiddenIds => {
-                hiddenMarkers = new Set(hiddenIds);
-
-                // Load marker dari leaflet.json dalam repo GitHub Pages
-                fetch("leaflet.json")
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(markerData => {
-                            let markerName = signNames[markerData.name] || markerData.name;
-                            
-                            let marker = L.marker([markerData.y, markerData.x], { icon: customIcon, opacity: 0.8 })
-                                .bindPopup(markerName)
-                                .addTo(map)
-                                .on('contextmenu', function () {
-                                    hideMarker(marker, markerData.id);
-                                });
-
-                            markers[markerData.id] = marker;
-
-                            if (hiddenMarkers.has(markerData.id.toString())) {
-                                marker.remove();
-                            }
-                        });
-
-                        updateMarkerCounter();
-                    });
-            });
-
-        // Hide marker & sync ke Google Sheets
-        function hideMarker(marker, id) {
+</body>
+</html>        function hideMarker(marker, id) {
             marker.remove();
             hiddenMarkers.add(id.toString());
             updateMarkerCounter();
@@ -157,3 +184,4 @@
 
 </body>
 </html>
+

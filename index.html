@@ -6,182 +6,40 @@
   <title>Farm & Crafting Guide</title>
   <style>
     body {
-      font-family: monospace;
       background-color: #1e1e1e;
       color: #f5f5f5;
+      font-family: monospace;
       padding: 20px;
+      white-space: pre; /* preserve spacing */
     }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-bottom: 30px;
-    }
-    th, td {
-      border: 1px solid #f5f5f5;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #333;
-    }
-    caption {
-      caption-side: top;
-      font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 1.2em;
+    .guide {
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
 
-  <table>
-    <caption>Tier 3 Crafting</caption>
-    <thead>
-      <tr>
-        <th>WEEDBUD</th>
-        <th>POPPY</th>
-        <th>COKELEAF</th>
-        <th>ACID</th>
-        <th>PLASTIC</th>
-        <th>WATER</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>-</td>
-        <td>-</td>
-        <td>200</td>
-        <td>-</td>
-        <td>40</td>
-        <td>40</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>200</td>
-        <td>-</td>
-        <td>-</td>
-        <td>40</td>
-        <td>40</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>200</td>
-        <td>40</td>
-        <td>40</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="guide">
+FARM & CRAFTING GUIDE (20SET)
 
-  <p>3 = 40x crack, 40x cokepure, 40x chlorite.</p>
+       WEEDBUD   POPPY   COKELEAF   ACID   PLASTIC   WATER
+TIER
+-         -       200        -       40       40
+-        200       -        -       40       40
+-         -        -       200       40       40
+-         -        -        -        -        -
 
-  <table>
-    <caption>Tier 4 Crafting</caption>
-    <thead>
-      <tr>
-        <th>WEEDBUD</th>
-        <th>CRACK</th>
-        <th>COKEPURE</th>
-        <th>CHLORITE</th>
-        <th>PLASTIC</th>
-        <th>WATER</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>100</td>
-        <td>-</td>
-        <td>20</td>
-        <td>-</td>
-        <td>20</td>
-        <td>-</td>
-      </tr>
-      <tr>
-        <td>100</td>
-        <td>20</td>
-        <td>-</td>
-        <td>-</td>
-        <td>20</td>
-        <td>-</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>20</td>
-        <td>-</td>
-        <td>20</td>
-        <td>20</td>
-        <td>-</td>
-      </tr>
-      <tr>
-        <td>-</td>
-        <td>-</td>
-        <td>20</td>
-        <td>20</td>
-        <td>20</td>
-        <td>-</td>
-      </tr>
-    </tbody>
-  </table>
+3 = 40x crack, 40x cokepure, 40x chlorite.
 
-  <p>4 = 20 joint, 20 morphine, 20 heroin, 20 pillscoke.</p>
+       WEEDBUD   CRACK   COKEPURE   CHLORITE   PLASTIC   WATER
+TIER
+100        -        20         -        20       -
+100       20        -         -        20       -
+-         20        -        20        20       -
+-          -        20        20        20       -
 
-</body>
-</html>        function hideMarker(marker, id) {
-            marker.remove();
-            hiddenMarkers.add(id.toString());
-            updateMarkerCounter();
-
-            fetch(sheetURL + "?action=hide&id=" + id)
-                .then(() => console.log("Marker hidden:", id));
-        }
-
-        // Undo hide marker terakhir
-        document.getElementById("undoButton").addEventListener("click", function () {
-            if (hiddenMarkers.size > 0) {
-                let id = [...hiddenMarkers].pop();
-                let marker = markers[id];
-
-                if (marker) {
-                    marker.addTo(map);
-                    hiddenMarkers.delete(id);
-                    updateMarkerCounter();
-
-                    fetch(sheetURL + "?action=show&id=" + id)
-                        .then(() => console.log("Marker restored:", id));
-                }
-            }
-        });
-
-        // Reset semua marker dengan password "noah"
-        document.getElementById("tsunamiButton").addEventListener("click", function () {
-            let pass = prompt("Masukkan password:");
-            if (pass === "noah") {
-                fetch(sheetURL + "?action=reset")
-                    .then(() => {
-                        console.log("Tsunami triggered!");
-                        location.reload();
-                    });
-            } else {
-                alert("Password salah!");
-            }
-        });
-
-        // Fungsi update marker counter
-        function updateMarkerCounter() {
-            let visibleMarkers = Object.values(markers).filter(marker => map.hasLayer(marker)).length;
-            document.getElementById("markerCounter").innerText = `Signboards: ${visibleMarkers}`;
-        }
-    </script>
+4 = 20 joint, 20 morphine, 20 heroin, 20 pillscoke.
+</div>
 
 </body>
 </html>
-
